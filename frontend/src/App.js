@@ -1,0 +1,37 @@
+import './App.css';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import GetHolidayList from './components/GetHolidayList';
+import Login from './components/Login';
+import Header from './components/Header';
+import Dashboard from './components/Dashboard';
+import ApplyLeaveForm from './components/ApplyLeaveForm';
+import GetEmployeeByManagerid from './components/GetEmployeeByManagerid';
+import EmployeeDetails from './components/EmployeeDetails';
+
+function App() {
+  return (
+    <div className="App">
+       <BrowserRouter>
+       <Header/>
+        <Routes>
+          <Route path='/' element={<Login />}/>
+          <Route path='/getholidaylist' element={<GetHolidayList />}/>
+          <Route path='/login' element={<Login/>}/>
+          <Route path='/dashboard' element={<Dashboard/>}/>
+          <Route path='/applyleave' element={<ApplyLeaveForm/>}/>
+          <Route path='/dashboard' element={<Dashboard/>}/>
+          <Route path='/employeedetail' element={<EmployeeDetails />} />
+          <Route path='/getemployee' element={<GetEmployeeByManagerid />} />
+          {/* <Route path='/leaverequest' element={<GetLeaveRequestByManagerid />} /> */}
+          
+        </Routes>
+      </BrowserRouter>
+      {/* <AddHolidayDetail/>
+      <Login/> */}
+      {/* <Dashboard/> */}
+      {/* <EmployeeDetails /> */}
+    </div>
+  );
+}
+
+export default App;
