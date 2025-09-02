@@ -1,0 +1,107 @@
+package com.sutherland.lms.service;
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.sutherland.lms.entity.LeaveRequest;
+import com.sutherland.lms.entity.LeaveStatus;
+import com.sutherland.lms.exception.LeaveAlreadyApprovedException;
+import com.sutherland.lms.exception.LeaveAlreadyWithdrawnException;
+import com.sutherland.lms.exception.LeaveRequestNotFoundException;
+import com.sutherland.lms.repository.LeaveRequestRepository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class LeaveRequestServiceImpl implements LeaveRequestService {
+
+    @Autowired
+    private LeaveRequestRepository leaveRequestRepository;
+
+
+    @Override
+    public LeaveRequest applyLeaveRequest(LeaveRequest leaveRequest) {
+    	
+        leaveRequest.setLeaveStatus(LeaveStatus.APPLIED);
+        leaveRequest.setDateApplied(LocalDate.now());
+        return leaveRequestRepository.save(leaveRequest);
+    }
+
+    @Override
+    public LeaveRequest verifyLeaveRequest(int leaveRequestId, boolean isApproved, String remarks) {
+        Optional<LeaveRequest> leaveRequestOpt = leaveRequestRepository.findById(leaveRequestId);
+        System.out.println(isApproved);
+        System.out.println(remarks);
+        if (leaveRequestOpt.isPresent()) {
+            LeaveRequest leaveRequest = leaveRequestOpt.get();
+            if (isApproved) {
+                leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+                leaveRequest.setRemarks(remarks);
+            } else {
+                leaveRequest.setLeaveStatus(LeaveStatus.REJECTED);
+                leaveRequest.setRemarks(remarks); 
+            }
+            return leaveRequestRepository.save(leaveRequest);
+        } else {
+            throw new LeaveRequestNotFoundException("Leave request not found with ID: " + leaveRequestId);
+        }
+    }
+
+    @Override
+    public LeaveRequest cancelLeaveRequest(int leaveRequestId) {
+        Optional<LeaveRequest> leaveRequestOpt = leaveRequestRepository.findById(leaveRequestId);
+
+        if (leaveRequestOpt.isPresent()) {
+            LeaveRequest leaveRequest = leaveRequestOpt.get();
+            leaveRequest.setLeaveStatus(LeaveStatus.CANCELLED);
+            return leaveRequestRepository.save(leaveRequest);
+        } else {
+            throw new LeaveRequestNotFoundException("Leave request not found with ID: " + leaveRequestId);
+        }
+    }
+
+    @Override
+    public LeaveRequest withdrawLeaveRequest(int leaveRequestId) {
+        Optional<LeaveRequest> leaveRequestOpt = leaveRequestRepository.findById(leaveRequestId);
+
+        if (leaveRequestOpt.isPresent()) {
+            LeaveRequest leaveRequest = leaveRequestOpt.get();
+            if (leaveRequest.getLeaveStatus() == LeaveStatus.APPROVED) {
+                throw new LeaveAlreadyApprovedException("Cannot withdraw an approved leave request");
+            }else if(leaveRequest.getLeaveStatus() == LeaveStatus.WITHDRAWN) {
+            	throw new LeaveAlreadyWithdrawnException("leave is already withdrawn");
+            }
+            leaveRequest.setLeaveStatus(LeaveStatus.WITHDRAWN);
+            return leaveRequestRepository.save(leaveRequest);
+        } else {
+            throw new LeaveRequestNotFoundException("Leave request not found with ID: " + leaveRequestId);
+        }
+    }
+
+    @Override
+    public Optional<LeaveRequest> getLeaveRequestById(int leaveRequestId) {
+        return leaveRequestRepository.findById(leaveRequestId);
+    }
+
+    @Override
+    public List<LeaveRequest> getLeaveHistoryByEmpid(String empid) {
+        return leaveRequestRepository.findByempid(empid);
+    }
+
+    @Override
+    public List<LeaveRequest> getAllLeaveRequests() {
+        return leaveRequestRepository.findAll();
+    }
+
+	@Override
+	public List<LeaveRequest> getLeaveHistoryByManagerid(String managerid) {
+		// TODO Auto-generated method stub
+		return leaveRequestRepository.findByManagerid(managerid);
+	}
+
+
+}
